@@ -74,7 +74,13 @@ the contents of c
 main ::
   IO ()
 main =
-  error "todo: Course.FileIO#main"
+-- getArgs    :: IO (List Chars)
+    do 
+        l <- getArgs
+        case l of
+            Nil -> putStrLn "Error"
+            (h :. _) -> run h
+
 
 type FilePath =
   Chars
@@ -83,31 +89,64 @@ type FilePath =
 run ::
   FilePath
   -> IO ()
-run =
-  error "todo: Course.FileIO#run"
+run f =
+-- readFile   :: Chars -> IO Chars
+-- getFile    :: FilePath -> IO (FilePath, Chars)
+-- printFiles :: List (FilePath, Chars) -> IO ()
+--    do
+--        l  <- (readFile f)
+--        fs <-(getFiles (lines l))
+--        printFiles fs
+        (readFile f) >>= (\l -> 
+        getFiles (lines l) >>= 
+        printFiles)
+        
 
 getFiles ::
   List FilePath
   -> IO (List (FilePath, Chars))
-getFiles =
-  error "todo: Course.FileIO#getFiles"
-
+getFiles l =
+-- getFile :: FilePath -> IO (FilePath, Chars)
+--    do 
+--        x <- sequence ((<$>) (getFile) l)
+--        pure (x)
+--    (sequence ((<$>) (getFile) l)) >>= \x -> pure x    
+--    (sequence ((<$>) (getFile) l)) >>= pure
+    (sequence ((<$>) (getFile) l))
+    
 getFile ::
   FilePath
   -> IO (FilePath, Chars)
-getFile =
-  error "todo: Course.FileIO#getFile"
+getFile f = 
+--    do 
+--        x <- readFile f
+--        pure (f, x)
+    readFile f >>= \x -> pure(f, x)
+
+getFile2 ::
+  FilePath
+  -> IO (FilePath, Chars)
+getFile2 = lift2 (<$>) (,) readFile
+
 
 printFiles ::
   List (FilePath, Chars)
   -> IO ()
-printFiles =
-  error "todo: Course.FileIO#printFiles"
+--printFiles l = void ( sequence ((<$>) (\(f, c) -> printFile f c) l) )
+--printFiles  = traverse_ (\(f, c) -> printFile f c)  
+printFiles  = traverse_ (uncurry printFile)  
 
 printFile ::
   FilePath
   -> Chars
   -> IO ()
-printFile =
-  error "todo: Course.FileIO#printFile"
+printFile f c  = 
+--    do
+--        putStrLn f
+--        putStrLn c
+--    (void . sequence . (<$>) putStrLn) (("====" ++ f) :. c :. Nil)
+    traverse_ putStrLn (("====" ++ f) :. c :. Nil)
+
+traverse_ :: Applicative f => (a1 -> f a2) -> List a1 -> f ()
+traverse_  f = void . sequence . (<$>) f
 

@@ -40,8 +40,7 @@ instance Functor (State s) where
     (a -> b)
     -> State s a
     -> State s b
-  (<$>) =
-    error "todo: Course.State#(<$>)"
+  (<$>) f s =  State (\x -> let (a, s') = runState s x in (f a,s'))
 
 -- | Implement the `Applicative` instance for `State s`.
 --
@@ -58,14 +57,15 @@ instance Applicative (State s) where
   pure ::
     a
     -> State s a
-  pure =
-    error "todo: Course.State pure#instance (State s)"
+  pure a = State (\s -> (a, s))
   (<*>) ::
     State s (a -> b)
     -> State s a
     -> State s b 
-  (<*>) =
-    error "todo: Course.State (<*>)#instance (State s)"
+  (<*>) sf sa = State 
+    (\s -> case runState sf s of 
+        (f, t) -> case runState sa t of 
+            (a, u) -> (f a, u))
 
 -- | Implement the `Bind` instance for `State s`.
 --
@@ -79,8 +79,9 @@ instance Monad (State s) where
     (a -> State s b)
     -> State s a
     -> State s b
-  (=<<) =
-    error "todo: Course.State (=<<)#instance (State s)"
+  (=<<) f st = State
+    (\s -> case runState st s of
+                (a, t) -> runState (f a) t)
 
 -- | Run the `State` seeded with `s` and retrieve the resulting state.
 --
@@ -89,8 +90,7 @@ exec ::
   State s a
   -> s
   -> s
-exec =
-  error "todo: Course.State#exec"
+exec st s = snd(runState st s)
 
 -- | Run the `State` seeded with `s` and retrieve the resulting value.
 --
@@ -99,8 +99,7 @@ eval ::
   State s a
   -> s
   -> a
-eval =
-  error "todo: Course.State#eval"
+eval st s = fst(runState st s)
 
 -- | A `State` where the state also distributes into the produced value.
 --
@@ -108,8 +107,7 @@ eval =
 -- (0,0)
 get ::
   State s s
-get =
-  error "todo: Course.State#get"
+get = State (\s -> (s, s))
 
 -- | A `State` where the resulting state is seeded with the given value.
 --
@@ -118,8 +116,8 @@ get =
 put ::
   s
   -> State s ()
-put =
-  error "todo: Course.State#put"
+-- put s = State (\_ -> ((), s))
+put = State . const . (,) ()
 
 -- | Find the first element in a `List` that satisfies a given predicate.
 -- It is possible that no element is found, hence an `Optional` result.
